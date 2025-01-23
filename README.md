@@ -146,7 +146,7 @@ pipeline {
     post{
         failure{
             echo 'Failure!'
-            mail to: 'adityakalambe20@gmail.com',
+            mail to: 'yourmail@gmail.com',
                  subject: "FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
                  body: "job '${env.JOB_NAME}' (${env.BUILD_URL}) failed"
         }
