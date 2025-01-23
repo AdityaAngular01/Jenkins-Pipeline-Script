@@ -1,5 +1,6 @@
 # Jenkins Declarative Pipeline Examples
 
+This document provides examples of Jenkins Declarative Pipelines for different scenarios. 
 
 ## Simple Pipeline Example
 
@@ -145,7 +146,7 @@ pipeline {
     post{
         failure{
             echo 'Failure!'
-            mail to: 'yourmail@gmail.com',
+            mail to: 'adityakalambe20@gmail.com',
                  subject: "FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
                  body: "job '${env.JOB_NAME}' (${env.BUILD_URL}) failed"
         }
@@ -179,3 +180,73 @@ pipeline {
 - Replace the GitHub repository URL with your own if needed.
 - Replace the email address in the `mail` step with the desired recipient.
 - Copy and paste the pipeline code into a Jenkins pipeline job.
+
+## Node.js Pipeline Example
+
+### Pipeline Code
+
+```groovy
+pipeline {
+    agent any
+    environment {
+        CI = 'true'
+    }
+    tools{
+        nodejs 'node-14'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/dinushchathurya/jenkins-nodejs-app.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Permissions'){
+            steps{
+                sh 'chmod +x jenkins/scripts/*.sh'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh './jenkins/scripts/test.sh'
+            }
+        }
+        stage('Deliver') {
+            steps {
+                sh './jenkins/scripts/deliver.sh'
+                input message: 'Finished using the web site? (Click "Proceed" to continue)'
+                sh './jenkins/scripts/kill.sh'
+            }
+        }
+    }
+}
+```
+
+### Features Explained
+
+1. **Tools Section**:
+   - Specifies `nodejs` with the tool name `node-14` configured in Jenkins.
+
+2. **Stages**:
+   - **Checkout**: Checks out the code from a GitHub repository.
+   - **Build**: Installs Node.js dependencies using `npm install`.
+   - **Permissions**: Grants executable permissions to scripts in `jenkins/scripts/`.
+   - **Test**: Executes the `test.sh` script for testing.
+   - **Deliver**: Runs deployment scripts and includes a manual input for confirmation before shutting down.
+
+3. **Environment Variables**:
+   - Sets `CI` to `true`, which may be used in scripts to indicate a CI environment.
+
+### Usage
+
+- Ensure Node.js is configured in Jenkins with the tool name `node-14`.
+- Replace the repository URL and script paths as needed.
+- Customize stages and scripts based on your application requirements.
+
+---
+
+This document now includes examples for Simple Pipelines, GitHub + Maven Pipelines, and Node.js Pipelines. Let me know if you need further enhancements!
