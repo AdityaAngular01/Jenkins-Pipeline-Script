@@ -1,8 +1,10 @@
-# Jenkins Declarative Pipeline Example
+# Jenkins Declarative Pipeline Examples
 
-This is an example of a Jenkins Declarative Pipeline that demonstrates various features such as environment variables, stages, retries, and timeouts.
+This document provides examples of Jenkins Declarative Pipelines for different scenarios. 
 
-## Pipeline Code
+## Simple Pipeline Example
+
+### Pipeline Code
 
 ```groovy
 pipeline {
@@ -71,7 +73,7 @@ pipeline {
 }
 ```
 
-## Features Explained
+### Features Explained
 
 1. **Agent Declaration**:
    - `agent any` indicates that the pipeline can run on any available agent.
@@ -95,15 +97,86 @@ pipeline {
 5. **Timeout**:
    - The `timeout` block ensures that the `sleep 30` command will fail if it takes longer than 15 seconds.
 
-## Usage
+## GitHub + Maven Pipeline Example
 
+### Pipeline Code
+
+```groovy
+pipeline {
+    agent any
+
+    tools {
+        maven "jenkins-maven"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Get some code from a GitHub repository
+                git 'https://github.com/jenkins-docs/simple-java-maven-app.git'
+            }
+        }
+        stage('Build'){
+            steps{
+                sh 'mvn clean package'
+            }
+        }
+        stage('Test'){
+            steps{
+                sh 'mvn test'
+            }
+            post{
+                always{
+                    junit '**/target/surefire-reports/TEST-*.xml'
+                }
+            }
+        }
+        stage('Approval'){
+            steps{
+                input 'Are you sure to deploy in production?'
+            }
+        }
+        stage('Deploy'){
+            steps{
+                sh 'java -jar target/*.jar'
+            }
+        }
+    }
+
+    post{
+        failure{
+            echo 'Failure!'
+            mail to: 'adityakalambe20@gmail.com',
+                 subject: "FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                 body: "job '${env.JOB_NAME}' (${env.BUILD_URL}) failed"
+        }
+        success{
+            echo 'Build and test successful!'
+            archiveArtifacts artifacts: '**/target/*.jar', onlyIfSuccessful: true
+        }
+    }
+}
+```
+
+### Features Explained
+
+1. **Tools Section**:
+   - Specifies `maven` with a custom tool name `jenkins-maven` configured in Jenkins.
+
+2. **Stages**:
+   - **Checkout**: Clones a GitHub repository.
+   - **Build**: Runs `mvn clean package` to build the application.
+   - **Test**: Executes tests using `mvn test` and publishes test results with `junit`.
+   - **Approval**: Prompts for manual approval before deploying to production.
+   - **Deploy**: Deploys the application by running the built JAR file.
+
+3. **Post Actions**:
+   - **Failure**: Sends an email notification if the pipeline fails.
+   - **Success**: Archives the built artifact if the pipeline is successful.
+
+### Usage
+
+- Ensure you have a Maven tool named `jenkins-maven` configured in Jenkins.
+- Replace the GitHub repository URL with your own if needed.
+- Replace the email address in the `mail` step with the desired recipient.
 - Copy and paste the pipeline code into a Jenkins pipeline job.
-- Replace `credentials('PASS')` with the appropriate credentials ID from your Jenkins instance.
-- Customize the stages and commands as needed.
-
-## Notes
-
-- Ensure that Jenkins has the appropriate plugins installed (e.g., Pipeline plugin).
-- Test the pipeline in a development environment before deploying it in production.
-
-Enjoy using Jenkins pipelines!
