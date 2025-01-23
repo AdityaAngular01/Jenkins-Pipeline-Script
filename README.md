@@ -1,6 +1,5 @@
 # Jenkins Declarative Pipeline Examples
 
-This document provides examples of Jenkins Declarative Pipelines for different scenarios. 
 
 ## Simple Pipeline Example
 
